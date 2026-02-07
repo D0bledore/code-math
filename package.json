@@ -1,0 +1,24 @@
+{
+  "name": "code-math",
+  "version": "1.0.0",
+  "description": "A simple Python script that generates random math problems for practice.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/D0bledore/code-math.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/D0bledore/code-math/issues"
+  },
+  "homepage": "https://github.com/D0bledore/code-math#readme",
+  "dependencies": {
+    "puppeteer": "^24.37.2"
+  }
+}
