@@ -1,54 +1,140 @@
 # Math Exercise Generator
 
-A simple Python script that generates random math problems for practice.
+An interactive web-based math exercise generator for students, featuring integer, decimal, and fraction problems with real-time scoring.
 
 ## Usage
+
+### Web App
+
+Open `index.html` in a browser. A random problem appears — type your answer, press **Enter** (or click **Prüfen**) to check it, then press **Enter** again for the next problem. Your score updates after each attempt.
+
+### Legacy CLI
 
 ```bash
 python logic.py
 ```
 
-- Press **Enter** to get the next problem
-- Type **q** and press Enter to quit
+The original Python version is kept for reference. Press Enter for the next problem, type `q` to quit.
 
 ## Problem Types
 
 | Type | Description | Example |
 |------|-------------|---------|
 | `add` | 4-digit addition | `3456 + 7891 =` |
-| `sub` | Subtraction (positive results) | `12000 - 3500 =` |
+| `sub` | Subtraction (positive results) | `12000 − 3500 =` |
 | `mul` | 3-digit × single digit | `456 × 7 =` |
 | `div` | Division (whole number results) | `1440 ÷ 12 =` |
 | `dec_add` | Decimal addition | `12.45 + 8.32 =` |
-| `dec_sub` | Decimal subtraction | `25.67 - 4.23 =` |
+| `dec_sub` | Decimal subtraction | `25.67 − 4.23 =` |
 | `dec_mul` | Decimal multiplication | `5.5 × 3.2 =` |
 | `dec_div` | Decimal division | `45 ÷ 2.5 =` |
-| `frac_add` | Fraction addition | `3/4 + 2/5 = (als Bruch)` |
-| `frac_sub` | Fraction subtraction | `7/3 - 2/5 = (als Bruch)` |
+| `frac_add` | Fraction addition | `3/4 + 2/5 =` |
+| `frac_sub` | Fraction subtraction | `7/3 − 2/5 =` |
+
+## Project Structure
+
+```
+code-math/
+├── index.html        # Main app entry point
+├── style.css         # App styling
+├── js/
+│   ├── problems.js   # Problem generation, answer checking, formatting
+│   └── app.js        # UI event handling and state management
+├── tests.html        # In-browser test runner
+├── run-tests.js      # Headless test runner (Puppeteer)
+├── logic.py          # Legacy Python CLI version
+└── package.json      # NPM config (Puppeteer dependency)
+```
+
+## API Reference (`MathProblems` module)
+
+`js/problems.js` exports three functions via the `MathProblems` global:
+
+### `generateTask()`
+
+Returns an object with:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `display` | `string` | Problem text ending with `=` |
+| `hint` | `string` | Hint for fraction problems (empty string otherwise) |
+| `type` | `string` | One of the 10 problem types listed above |
+| `answer` | `number` or `{num, den}` | Correct answer (fraction object for `frac_*` types) |
+| `isFraction` | `boolean` | `true` for `frac_add` / `frac_sub` |
+
+### `checkAnswer(answer, isFraction, userStr)`
+
+Returns `boolean` — whether the user's input is correct.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `answer` | `number` or `{num, den}` | The correct answer from `generateTask()` |
+| `isFraction` | `boolean` | Whether the problem is a fraction type |
+| `userStr` | `string` | The user's raw input |
+
+Key behaviors:
+- **Decimal inputs**: both `,` and `.` are accepted as decimal separators
+- **Numeric tolerance**: answers within ±0.005 of the correct value are accepted
+- **Fraction equivalence**: checked via cross-multiplication (`uNum * answer.den === uDen * answer.num`), so any equivalent fraction is accepted (e.g. `6/8` for `3/4`)
+- Rejects empty/whitespace-only input, non-numeric text, and zero denominators
+
+### `formatAnswer(answer, isFraction)`
+
+Returns `string` — the answer formatted for display.
+
+- **Numbers**: converted to string directly
+- **Fractions**: reduced to lowest terms using GCD (e.g. `{num:6, den:4}` → `"3/2"`)
+
+## Features
+
+- German-language UI
+- Real-time scoring (Richtig/Falsch counter)
+- Keyboard support — Enter to submit answer or advance to next problem
+- Comma and dot decimal separators accepted
+- Fraction equivalence checking (any equivalent fraction is correct)
+- Hints for fraction problems ("Antwort als Bruch")
+- Answers auto-reduced to lowest terms on display
 
 ## Design Decisions
 
 ### Ensuring Valid Results
 
-**Subtraction**: The first operand (5000-15000) is always larger than the second (1000-4999), preventing negative results.
+**Subtraction**: The first operand (5000–15000) is always larger than the second (1000–4999), preventing negative results.
 
 **Division**: The dividend is adjusted with `a = a - (a % b)` to guarantee whole number results.
 
-**Fraction Subtraction**: The fractions are compared and swapped if necessary to ensure positive results:
-```python
-if num1/den1 < num2/den2:
-    num1, den1, num2, den2 = num2, den2, num1, den1
+**Fraction Subtraction**: Operands are compared and swapped if necessary to ensure non-negative results:
+```js
+if (num1/den1 < num2/den2) {
+    // swap (num1,den1) with (num2,den2)
+}
 ```
 
 ### Decimal Division Ranges
 
-Changed from `10-100 ÷ 0.1-2` to `10-50 ÷ 0.5-5` because:
+Changed from `10–100 ÷ 0.1–2` to `10–50 ÷ 0.5–5` because:
 - Original could produce results up to 1000 (100 ÷ 0.1)
 - Original divisors like 0.1 create unwieldy decimal answers
-- New range produces more manageable results (2-100)
+- New range produces more manageable results (2–100)
 
-### User-Controlled Loop
+## Testing
 
-Changed from infinite `while True` to input-controlled loop:
-- Allows users to pace themselves
-- Provides clean exit with 'q' instead of requiring Ctrl+C
+45 tests across 5 suites.
+
+**In browser**: open `tests.html`
+
+**Headless** (requires Node.js):
+```bash
+npm install
+node run-tests.js
+```
+
+### Suites
+
+| Suite | Tests | Covers |
+|-------|------:|--------|
+| 1 — Generation invariants | 11 | All types generated, correct fields, answer constraints |
+| 2 — Answer checking | 14 | Integer, decimal, locale, tolerance, fraction equivalence |
+| 3 — formatAnswer | 4 | String formatting, GCD reduction |
+| 4 — Mathematical correctness | 10 | Display ↔ stored answer agreement (100 runs per type) |
+| 5 — Student-safety checks | 6 | No negatives, exact division, decimal places, tolerance bounds |
