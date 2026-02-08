@@ -30,6 +30,8 @@ The original Python version is kept for reference. Press Enter for the next prob
 | `dec_div` | Decimal division | `45 ÷ 2.5 =` |
 | `frac_add` | Fraction addition | `3/4 + 2/5 =` |
 | `frac_sub` | Fraction subtraction | `7/3 − 2/5 =` |
+| `dreisatz` | Direct proportion (Rule of Three) | `5 Äpfel kosten 15€. Was kosten 8 Äpfel?` |
+| `dreisatz_inv` | Inverse proportion | `4 Arbeiter brauchen 6 Tage. Wie viele Tage brauchen 3 Arbeiter?` |
 
 ## Project Structure
 
@@ -56,11 +58,12 @@ Returns an object with:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `display` | `string` | Problem text ending with `=` |
-| `hint` | `string` | Hint for fraction problems (empty string otherwise) |
-| `type` | `string` | One of the 10 problem types listed above |
+| `display` | `string` | Problem text ending with `=` or `?` (word problems) |
+| `hint` | `string` | Hint for fraction and Dreisatz problems (empty string otherwise) |
+| `type` | `string` | One of the 12 problem types listed above |
 | `answer` | `number` or `{num, den}` | Correct answer (fraction object for `frac_*` types) |
 | `isFraction` | `boolean` | `true` for `frac_add` / `frac_sub` |
+| `answer` | `number` or `{num, den}` | For Dreisatz: always a whole number |
 
 ### `checkAnswer(answer, isFraction, userStr)`
 
@@ -92,7 +95,7 @@ Returns `string` — the answer formatted for display.
 - Keyboard support — Enter to submit answer or advance to next problem
 - Comma and dot decimal separators accepted
 - Fraction equivalence checking (any equivalent fraction is correct)
-- Hints for fraction problems ("Antwort als Bruch")
+- Hints for fraction problems ("Antwort als Bruch") and Dreisatz problems ("Antwort in €" / "Antwort in Tagen")
 - Answers auto-reduced to lowest terms on display
 
 ## Design Decisions
@@ -120,9 +123,25 @@ var a = parseFloat((ans * b).toFixed(2)); // Dividend = answer × divisor
 ```
 This guarantees every problem has an exact, mentally-computable answer (e.g., `15.5 ÷ 2.5 = 6.2`).
 
+### Dreisatz (Rule of Three)
+
+**Direct proportion** (`dreisatz`): Generates word problems where more items cost proportionally more. The price per item is generated first, ensuring whole number answers:
+```js
+var pricePerItem = randInt(2, 10);
+var b = a * pricePerItem;  // Total cost is always a multiple
+answer = c * pricePerItem; // Answer is always whole
+```
+
+**Inverse proportion** (`dreisatz_inv`): Generates word problems where more workers means fewer days. Total work-days is computed first, and the target worker count is chosen to divide evenly:
+```js
+var totalWork = a * randInt(2, 8);  // Total work-days
+while (totalWork % c !== 0 || c === a) c = randInt(2, 8);  // Ensure clean division
+answer = totalWork / c;
+```
+
 ## Testing
 
-45 tests across 5 suites.
+47 tests across 5 suites.
 
 **In browser**: open `tests.html`
 
@@ -139,5 +158,5 @@ node run-tests.js
 | 1 — Generation invariants | 11 | All types generated, correct fields, answer constraints |
 | 2 — Answer checking | 14 | Integer, decimal, locale, tolerance, fraction equivalence |
 | 3 — formatAnswer | 4 | String formatting, GCD reduction |
-| 4 — Mathematical correctness | 10 | Display ↔ stored answer agreement (100 runs per type) |
+| 4 — Mathematical correctness | 12 | Display ↔ stored answer agreement (100 runs per type) |
 | 5 — Student-safety checks | 6 | No negatives, exact division, decimal places, tolerance bounds |
