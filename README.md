@@ -43,10 +43,10 @@ code-math/
 ├── js/
 │   ├── problems.js   # Problem generation, answer checking, formatting
 │   └── app.js        # UI event handling and state management
-├── tests.html        # In-browser test runner
-├── run-tests.js      # Headless test runner (Puppeteer)
+├── tests.html        # Browser test page
+├── run-tests.js      # Server-side test runner (Node.js)
 ├── logic.py          # Legacy Python CLI version
-└── package.json      # NPM config (Puppeteer dependency)
+└── package.json      # NPM config
 ```
 
 ## API Reference (`MathProblems` module)
@@ -133,31 +133,19 @@ var b = a * pricePerItem;  // Total cost is always a multiple
 answer = c * pricePerItem; // Answer is always whole
 ```
 
-**Inverse proportion** (`dreisatz_inv`): Generates word problems where more workers means fewer days. Total work-days is computed first, and the target worker count is chosen to divide evenly:
+**Inverse proportion** (`dreisatz_inv`): Generates word problems where more workers means fewer days. Total work-days is computed first, and the target worker count is chosen to divide evenly. The initial worker count `b` must differ from `a` to guarantee a valid `c` exists:
 ```js
-var totalWork = a * randInt(2, 8);  // Total work-days
+var bVal = randInt(2, 8);
+while (bVal === a) bVal = randInt(2, 8);  // Ensure b ≠ a
+var totalWork = a * bVal;
 while (totalWork % c !== 0 || c === a) c = randInt(2, 8);  // Ensure clean division
 answer = totalWork / c;
 ```
 
 ## Testing
 
-48 tests across 5 suites.
-
-**In browser**: open `tests.html`
-
-**Headless** (requires Node.js):
 ```bash
-npm install
 node run-tests.js
 ```
 
-### Suites
-
-| Suite | Tests | Covers |
-|-------|------:|--------|
-| 1 — Generation invariants | 11 | All types generated, correct fields, answer constraints |
-| 2 — Answer checking | 14 | Integer, decimal, locale, tolerance, fraction equivalence |
-| 3 — formatAnswer | 4 | String formatting, GCD reduction |
-| 4 — Mathematical correctness | 13 | Display ↔ stored answer agreement (100 runs per type) |
-| 5 — Student-safety checks | 6 | No negatives, exact division, decimal places, tolerance bounds |
+48 tests across 5 suites. See [TESTS.md](TESTS.md) for details.

@@ -98,8 +98,10 @@ var MathProblems = (function() {
     } else if (t === 'dreisatz_inv') {
       // Inverse proportion: a workers take b days, how long for c workers?
       var a = randInt(2, 8);
-      var totalWork = a * randInt(2, 8);  // a × b must be divisible
-      var b = totalWork / a;
+      var bVal = randInt(2, 8);
+      while (bVal === a) bVal = randInt(2, 8);
+      var totalWork = a * bVal;
+      var b = bVal;
       var c = randInt(2, 8);
       while (totalWork % c !== 0 || c === a) c = randInt(2, 8);
       display = a + ' Arbeiter brauchen ' + b + ' Tage. Wie viele Tage brauchen ' + c + ' Arbeiter?';
@@ -110,16 +112,29 @@ var MathProblems = (function() {
         { from: 'mm', to: 'cm', factor: 10, dir: 'div' },
         { from: 'cm', to: 'm',  factor: 100, dir: 'div' },
         { from: 'm',  to: 'km', factor: 1000, dir: 'div' },
+        { from: 'mm', to: 'm',  factor: 1000, dir: 'div' },
+        { from: 'cm', to: 'km', factor: 100000, dir: 'div' },
+        { from: 'mm', to: 'km', factor: 1000000, dir: 'div' },
         { from: 'km', to: 'm',  factor: 1000, dir: 'mul' },
+        { from: 'km', to: 'cm', factor: 100000, dir: 'mul' },
+        { from: 'km', to: 'mm', factor: 1000000, dir: 'mul' },
         { from: 'm',  to: 'cm', factor: 100, dir: 'mul' },
+        { from: 'm',  to: 'mm', factor: 1000, dir: 'mul' },
         { from: 'cm', to: 'mm', factor: 10, dir: 'mul' },
         { from: 'g',  to: 'kg', factor: 1000, dir: 'div' },
         { from: 'kg', to: 'g',  factor: 1000, dir: 'mul' },
         { from: 'kg', to: 't',  factor: 1000, dir: 'div' },
+        { from: 't',  to: 'kg', factor: 1000, dir: 'mul' },
+        { from: 'g',  to: 't',  factor: 1000000, dir: 'div' },
+        { from: 't',  to: 'g',  factor: 1000000, dir: 'mul' },
         { from: 'ml', to: 'l',  factor: 1000, dir: 'div' },
         { from: 'l',  to: 'ml', factor: 1000, dir: 'mul' },
+        { from: 's',  to: 'min', factor: 60, dir: 'div' },
+        { from: 'min', to: 's', factor: 60, dir: 'mul' },
         { from: 'min', to: 'h', factor: 60, dir: 'div' },
-        { from: 'h', to: 'min', factor: 60, dir: 'mul' }
+        { from: 'h', to: 'min', factor: 60, dir: 'mul' },
+        { from: 's',  to: 'h',  factor: 3600, dir: 'div' },
+        { from: 'h',  to: 's',  factor: 3600, dir: 'mul' }
       ];
       var conv = conversions[randInt(0, conversions.length - 1)];
       if (conv.dir === 'div') {
@@ -171,3 +186,5 @@ var MathProblems = (function() {
     formatAnswer: formatAnswer
   };
 })();
+
+if (typeof module !== 'undefined') module.exports = MathProblems;
