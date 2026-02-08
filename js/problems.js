@@ -18,7 +18,8 @@ var MathProblems = (function() {
     'add', 'sub', 'mul', 'div',
     'dec_add', 'dec_sub', 'dec_mul', 'dec_div',
     'frac_add', 'frac_sub',
-    'dreisatz', 'dreisatz_inv'
+    'dreisatz', 'dreisatz_inv',
+    'umrechnung'
   ];
 
   function generateTask() {
@@ -104,6 +105,35 @@ var MathProblems = (function() {
       display = a + ' Arbeiter brauchen ' + b + ' Tage. Wie viele Tage brauchen ' + c + ' Arbeiter?';
       hint = 'Antwort in Tagen';
       answer = totalWork / c;
+    } else if (t === 'umrechnung') {
+      var conversions = [
+        { from: 'mm', to: 'cm', factor: 10, dir: 'div' },
+        { from: 'cm', to: 'm',  factor: 100, dir: 'div' },
+        { from: 'm',  to: 'km', factor: 1000, dir: 'div' },
+        { from: 'km', to: 'm',  factor: 1000, dir: 'mul' },
+        { from: 'm',  to: 'cm', factor: 100, dir: 'mul' },
+        { from: 'cm', to: 'mm', factor: 10, dir: 'mul' },
+        { from: 'g',  to: 'kg', factor: 1000, dir: 'div' },
+        { from: 'kg', to: 'g',  factor: 1000, dir: 'mul' },
+        { from: 'kg', to: 't',  factor: 1000, dir: 'div' },
+        { from: 'ml', to: 'l',  factor: 1000, dir: 'div' },
+        { from: 'l',  to: 'ml', factor: 1000, dir: 'mul' },
+        { from: 'min', to: 'h', factor: 60, dir: 'div' },
+        { from: 'h', to: 'min', factor: 60, dir: 'mul' }
+      ];
+      var conv = conversions[randInt(0, conversions.length - 1)];
+      if (conv.dir === 'div') {
+        var ans = randFloat(1, 20, 1);
+        var val = parseFloat((ans * conv.factor).toFixed(1));
+        display = 'Rechne ' + val + ' ' + conv.from + ' in ' + conv.to + ' um.';
+        answer = ans;
+      } else {
+        var val = randFloat(1, 10, 1);
+        var ans = parseFloat((val * conv.factor).toFixed(1));
+        display = 'Rechne ' + val + ' ' + conv.from + ' in ' + conv.to + ' um.';
+        answer = ans;
+      }
+      hint = 'Antwort in ' + conv.to;
     }
 
     return { display: display, hint: hint, type: t, answer: answer, isFraction: isFraction };

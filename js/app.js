@@ -16,7 +16,8 @@
     add: 'Addition', sub: 'Subtraktion', mul: 'Multiplikation', div: 'Division',
     dec_add: 'Dezimal +', dec_sub: 'Dezimal \u2212', dec_mul: 'Dezimal \u00d7', dec_div: 'Dezimal \u00f7',
     frac_add: 'Bruch +', frac_sub: 'Bruch \u2212',
-    dreisatz: 'Dreisatz', dreisatz_inv: 'Dreisatz umgekehrt'
+    dreisatz: 'Dreisatz', dreisatz_inv: 'Dreisatz umgekehrt',
+    umrechnung: 'Umrechnung'
   };
 
   function nextProblem() {

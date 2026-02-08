@@ -66,9 +66,9 @@
   }
   tasks.forEach(function(t) { typeSeen[t.type] = true; });
 
-  var allTypes = ['add','sub','mul','div','dec_add','dec_sub','dec_mul','dec_div','frac_add','frac_sub','dreisatz','dreisatz_inv'];
+  var allTypes = ['add','sub','mul','div','dec_add','dec_sub','dec_mul','dec_div','frac_add','frac_sub','dreisatz','dreisatz_inv','umrechnung'];
   var allSeen = allTypes.every(function(tp) { return typeSeen[tp]; });
-  assert(allSeen, 'All 12 types appear over 500 generations',
+  assert(allSeen, 'All 13 types appear over 500 generations',
     'Missing: ' + allTypes.filter(function(tp) { return !typeSeen[tp]; }).join(', '));
 
   var allFields = tasks.every(function(t) {
@@ -78,11 +78,11 @@
   });
   assert(allFields, 'Every task has display, hint, type, answer, isFraction');
 
-  var allEndEqual = tasks.every(function(t) { return /[=?]\s*$/.test(t.display); });
-  assert(allEndEqual, 'display always ends with = or ?');
+  var allEndEqual = tasks.every(function(t) { return /[=?.]\s*$/.test(t.display); });
+  assert(allEndEqual, 'display always ends with = or ? or .');
 
   var hintCorrect = tasks.every(function(t) {
-    if (t.type === 'frac_add' || t.type === 'frac_sub' || t.type === 'dreisatz' || t.type === 'dreisatz_inv') return t.hint !== '';
+    if (t.type === 'frac_add' || t.type === 'frac_sub' || t.type === 'dreisatz' || t.type === 'dreisatz_inv' || t.type === 'umrechnung') return t.hint !== '';
     return t.hint === '';
   });
   assert(hintCorrect, 'hint non-empty only for frac/dreisatz types');
@@ -206,6 +206,11 @@
         if (!m) return { ok: false, msg: 'parse fail' };
         var a = +m[1], b = +m[2], c = +m[3];
         expected = (a * b) / c;
+      } else if (type === 'umrechnung') {
+        var m = d.match(/^Rechne ([\d.]+) (\S+) in (\S+) um\.$/);
+        if (!m) { mismatches.push('parse fail: ' + d); continue; }
+        if (!isFinite(t.answer)) mismatches.push(d + ' answer not finite');
+        continue;
       }
 
       if (t.isFraction) {
