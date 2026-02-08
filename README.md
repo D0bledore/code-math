@@ -1,12 +1,12 @@
-# Math Exercise Generator
+# Learning Exercise Generator
 
-An interactive web-based math exercise generator for students, featuring integer, decimal, and fraction problems with real-time scoring.
+An interactive web-based exercise generator for students, covering **Math** and **Physics** problems with real-time scoring.
 
 ## Usage
 
 ### Web App
 
-Open `index.html` in a browser. A random problem appears — type your answer, press **Enter** (or click **Prüfen**) to check it, then press **Enter** again for the next problem. Your score updates after each attempt.
+Open `index.html` in a browser to see the dashboard. Choose **Mathe-Übungen** or **Physik-Übungen**. A random problem appears — type your answer, press **Enter** (or click **Prüfen**) to check it, then press **Enter** again for the next problem. Your score updates after each attempt.
 
 ### Legacy CLI
 
@@ -17,6 +17,8 @@ python logic.py
 The original Python version is kept for reference. Press Enter for the next problem, type `q` to quit.
 
 ## Problem Types
+
+### Math
 
 | Type | Description | Example |
 |------|-------------|---------|
@@ -34,22 +36,36 @@ The original Python version is kept for reference. Press Enter for the next prob
 | `dreisatz_inv` | Inverse proportion | `4 Arbeiter brauchen 6 Tage. Wie viele Tage brauchen 3 Arbeiter?` |
 | `umrechnung` | Unit conversion (length, weight, volume, time) | `Rechne 3500 g in kg um.` |
 
+### Physics — Ohmsches Gesetz (Ohm's Law)
+
+| Type | Given | Find | Example |
+|------|-------|------|---------|
+| `ohm_u` | R (Ω), I (A) | U (V) | `R = 47 Ω, I = 2,5 A. Berechne U.` |
+| `ohm_r` | U (V), I (A) | R (Ω) | `U = 120 V, I = 3 A. Berechne R.` |
+| `ohm_i` | U (V), R (Ω) | I (A) | `U = 230 V, R = 46 Ω. Berechne I.` |
+
 ## Project Structure
 
 ```
 code-math/
-├── index.html        # Main app entry point
-├── style.css         # App styling
+├── index.html              # Dashboard (landing page)
+├── math.html               # Math exercises page
+├── physics.html            # Physics exercises page
+├── style.css               # App styling (shared)
 ├── js/
-│   ├── problems.js   # Problem generation, answer checking, formatting
-│   └── app.js        # UI event handling and state management
-├── tests.html        # Browser test page
-├── run-tests.js      # Server-side test runner (Node.js)
-├── logic.py          # Legacy Python CLI version
-└── package.json      # NPM config
+│   ├── problems.js         # Math problem generation, answer checking, formatting
+│   ├── app.js              # Math UI event handling and state management
+│   ├── physics-problems.js # Physics problem generation, answer checking, formatting
+│   └── physics-app.js      # Physics UI event handling and state management
+├── tests.html              # Browser test page
+├── run-tests.js            # Server-side test runner (Node.js)
+├── logic.py                # Legacy Python CLI version
+└── package.json            # NPM config
 ```
 
-## API Reference (`MathProblems` module)
+## API Reference
+
+### `MathProblems` module
 
 `js/problems.js` exports three functions via the `MathProblems` global:
 
@@ -91,15 +107,15 @@ Returns `string` — the answer formatted for display.
 
 ## Features
 
+- Dashboard landing page with subject selection (Math / Physics)
 - German-language UI
 - Real-time scoring (Richtig/Falsch counter)
 - Keyboard support — Enter to submit answer or advance to next problem
 - Comma and dot decimal separators accepted
 - Fraction equivalence checking (any equivalent fraction is correct)
-- Hints for fraction problems ("Antwort als Bruch"), Dreisatz problems ("Antwort in €" / "Antwort in Tagen"), and unit conversions ("Antwort in km" etc.)
+- Hints for fraction problems ("Antwort als Bruch"), Dreisatz problems ("Antwort in €" / "Antwort in Tagen"), unit conversions ("Antwort in km" etc.), and physics problems ("Antwort in V" / "Antwort in Ω" / "Antwort in A")
 - Answers auto-reduced to lowest terms on display
-
-## Design Decisions
+- Back navigation from exercise pages to dashboard
 
 ### Ensuring Valid Results
 
@@ -113,6 +129,29 @@ if (num1/den1 < num2/den2) {
     // swap (num1,den1) with (num2,den2)
 }
 ```
+
+### `PhysicsProblems` module
+
+`js/physics-problems.js` exports three functions via the `PhysicsProblems` global, following the same interface as `MathProblems`:
+
+#### `generateTask()`
+
+Returns an object with `display`, `hint`, `type`, `answer`, `isFraction` (always `false`).
+
+Generation ensures clean answers:
+- `ohm_u`: R and I are generated directly, U = R × I
+- `ohm_r`: R (integer) is chosen first, I is generated, U = R × I is computed. Given U and I, the student solves for R (always a whole number)
+- `ohm_i`: I (1 decimal) is chosen first, R is generated, U = R × I is computed. Given U and R, the student solves for I (at most 1 decimal place)
+
+#### `checkAnswer(answer, isFraction, userStr)`
+
+Same tolerance-based approach as `MathProblems` (±0.005), accepts both comma and dot decimal separators.
+
+#### `formatAnswer(answer)`
+
+Returns the answer as a plain string.
+
+## Design Decisions
 
 ### Decimal Division
 
@@ -148,4 +187,4 @@ answer = totalWork / c;
 node run-tests.js
 ```
 
-48 tests across 5 suites. See [TESTS.md](TESTS.md) for details.
+71 tests across 9 suites. See [TESTS.md](TESTS.md) for details.

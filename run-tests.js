@@ -1,7 +1,9 @@
 var MathProblems = require('./js/problems.js');
+var PhysicsProblems = require('./js/physics-problems.js');
 
 var passed = 0, failed = 0;
 var allTypes = ['add','sub','mul','div','dec_add','dec_sub','dec_mul','dec_div','frac_add','frac_sub','dreisatz','dreisatz_inv','umrechnung'];
+var physicsTypes = ['ohm_u', 'ohm_r', 'ohm_i'];
 
 function suite(name) {
   console.log('\n' + name);
@@ -226,6 +228,132 @@ assert(fracSubNonNeg2, 'Fraction subtraction never negative');
 
 assert(!MathProblems.checkAnswer(100, false, '101'), 'Tolerance not so loose that off-by-1 integers pass');
 assert(MathProblems.checkAnswer(3.33, false, '3.334'), 'Tolerance not so tight that valid rounding fails');
+
+// ========== PHYSICS TESTS ==========
+
+// ---------- Suite 6: Physics generation invariants ----------
+suite('Suite 6 — Physics generation invariants (N=300)');
+
+var physN = 300;
+var physicsTasks = [];
+var physTypeSeen = {};
+for (var i = 0; i < physN; i++) {
+  physicsTasks.push(PhysicsProblems.generateTask());
+}
+physicsTasks.forEach(function(t) { physTypeSeen[t.type] = true; });
+
+var physAllSeen = physicsTypes.every(function(tp) { return physTypeSeen[tp]; });
+assert(physAllSeen, 'All 3 physics types appear over 300 generations',
+  'Missing: ' + physicsTypes.filter(function(tp) { return !physTypeSeen[tp]; }).join(', '));
+
+var physAllFields = physicsTasks.every(function(t) {
+  return t.hasOwnProperty('display') && t.hasOwnProperty('hint') &&
+         t.hasOwnProperty('type') && t.hasOwnProperty('answer') &&
+         t.hasOwnProperty('isFraction');
+});
+assert(physAllFields, 'Every physics task has display, hint, type, answer, isFraction');
+
+var physNeverFrac = physicsTasks.every(function(t) { return t.isFraction === false; });
+assert(physNeverFrac, 'Physics tasks never have isFraction=true');
+
+var physDisplayEnd = physicsTasks.every(function(t) { return /\.\s*$/.test(t.display); });
+assert(physDisplayEnd, 'Physics display always ends with .');
+
+var physHintNonEmpty = physicsTasks.every(function(t) { return t.hint !== ''; });
+assert(physHintNonEmpty, 'Physics tasks always have a hint');
+
+var physNoNaN = physicsTasks.every(function(t) {
+  return !isNaN(t.answer) && isFinite(t.answer);
+});
+assert(physNoNaN, 'Physics answers never NaN / Infinity');
+
+var physPositive = physicsTasks.every(function(t) { return t.answer > 0; });
+assert(physPositive, 'Physics answers always positive');
+
+// ---------- Suite 7: Physics answer checking ----------
+suite('Suite 7 — Physics answer checking');
+
+assert(PhysicsProblems.checkAnswer(42, false, '42'), 'Physics: correct integer accepted');
+assert(!PhysicsProblems.checkAnswer(42, false, '43'), 'Physics: wrong integer rejected');
+assert(!PhysicsProblems.checkAnswer(42, false, ''), 'Physics: empty string rejected');
+assert(!PhysicsProblems.checkAnswer(42, false, '   '), 'Physics: whitespace-only rejected');
+assert(PhysicsProblems.checkAnswer(3.5, false, '3,5'), 'Physics: comma decimal separator accepted');
+assert(PhysicsProblems.checkAnswer(3.5, false, '3.5'), 'Physics: dot decimal separator accepted');
+assert(PhysicsProblems.checkAnswer(5.5, false, '5.504'), 'Physics: within tolerance accepted');
+assert(!PhysicsProblems.checkAnswer(5.5, false, '5.506'), 'Physics: outside tolerance rejected');
+assert(!PhysicsProblems.checkAnswer(42, false, 'abc'), 'Physics: non-numeric text rejected');
+
+// ---------- Suite 8: Physics mathematical correctness ----------
+suite('Suite 8 — Physics mathematical correctness (N=100 each)');
+
+physicsTypes.forEach(function(tp) {
+  var mismatches = [];
+  for (var i = 0; i < 100; i++) {
+    var t;
+    do { t = PhysicsProblems.generateTask(); } while (t.type !== tp);
+    var d = t.display;
+
+    if (tp === 'ohm_u') {
+      var m = d.match(/R = (\d+) \u03A9, I = ([\d,]+) A\. Berechne U\./);
+      if (!m) { mismatches.push('parse fail: ' + d); continue; }
+      var r = parseInt(m[1]);
+      var iVal = parseFloat(m[2].replace(',', '.'));
+      var expected = parseFloat((r * iVal).toFixed(1));
+      if (Math.abs(expected - t.answer) > 0.001)
+        mismatches.push(d + ' got ' + t.answer + ' expected ' + expected);
+    } else if (tp === 'ohm_r') {
+      var m = d.match(/U = ([\d,]+) V, I = ([\d,]+) A\. Berechne R\./);
+      if (!m) { mismatches.push('parse fail: ' + d); continue; }
+      var u = parseFloat(m[1].replace(',', '.'));
+      var iVal = parseFloat(m[2].replace(',', '.'));
+      var expected = u / iVal;
+      if (Math.abs(expected - t.answer) > 0.01)
+        mismatches.push(d + ' got ' + t.answer + ' expected ' + expected);
+    } else if (tp === 'ohm_i') {
+      var m = d.match(/U = ([\d,]+) V, R = (\d+) \u03A9\. Berechne I\./);
+      if (!m) { mismatches.push('parse fail: ' + d); continue; }
+      var u = parseFloat(m[1].replace(',', '.'));
+      var r = parseInt(m[2]);
+      var expected = u / r;
+      if (Math.abs(expected - t.answer) > 0.01)
+        mismatches.push(d + ' got ' + t.answer + ' expected ' + expected);
+    }
+  }
+  assert(mismatches.length === 0, tp + ': display matches stored answer (100 runs)',
+    mismatches.length > 0 ? mismatches.slice(0, 3).join('; ') : '');
+});
+
+// ---------- Suite 9: Physics safety checks ----------
+suite('Suite 9 — Physics safety checks');
+
+var physSafetyN = 300;
+var physSafetyTasks = [];
+for (var i = 0; i < physSafetyN; i++) physSafetyTasks.push(PhysicsProblems.generateTask());
+
+var physRangeOk = physSafetyTasks.every(function(t) {
+  return t.answer > 0 && t.answer < 10000;
+});
+assert(physRangeOk, 'Physics answers in reasonable range (0-10000)');
+
+var ohmRClean = physSafetyTasks.filter(function(t) { return t.type === 'ohm_r'; })
+  .every(function(t) { return Number.isInteger(t.answer); });
+assert(ohmRClean, 'ohm_r: R answer is always a whole number');
+
+var ohmIClean = physSafetyTasks.filter(function(t) { return t.type === 'ohm_i'; })
+  .every(function(t) {
+    var s = String(t.answer);
+    var parts = s.split('.');
+    return parts.length === 1 || parts[1].length <= 1;
+  });
+assert(ohmIClean, 'ohm_i: I answer has at most 1 decimal place');
+
+var physHintCorrect = physSafetyTasks.every(function(t) {
+  if (t.type === 'ohm_u') return t.hint === 'Antwort in V';
+  if (t.type === 'ohm_r') return t.hint === 'Antwort in \u03A9';
+  if (t.type === 'ohm_i') return t.hint === 'Antwort in A';
+  return false;
+});
+assert(physHintCorrect, 'Physics hints match expected units');
 
 // ---------- Summary ----------
 console.log('\n=== RESULTS ===');

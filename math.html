@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathe-Übungen</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-link">&larr; Zurück</a>
+  <h1>Mathe-Übungen</h1>
+  <div class="score">Richtig: <span id="correct">0</span> / <span id="total">0</span></div>
+  <div class="problem" id="problem"></div>
+  <div class="hint" id="hint"></div>
+  <div class="answer-row">
+    <input type="text" id="answerInput" autocomplete="off" placeholder="Antwort">
+    <button id="submitBtn">Prüfen</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button id="nextBtn">Nächste Aufgabe</button>
+  <div class="type-label" id="typeLabel"></div>
+</div>
+<script src="js/problems.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

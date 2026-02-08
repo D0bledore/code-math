@@ -1,6 +1,6 @@
 # Testing
 
-48 tests across 5 suites.
+71 tests across 9 suites (5 math + 4 physics).
 
 ## Running Tests
 
@@ -61,3 +61,38 @@ Generates 300 tasks and verifies constraints that protect students from confusin
 - Fraction subtraction never produces negative numerators
 - Tolerance is not so loose that off-by-1 integers pass
 - Tolerance is not so tight that valid rounding fails
+
+### Suite 6 — Physics generation invariants (7 tests)
+
+Generates 300 random physics tasks and verifies structural correctness:
+
+- All 3 physics types (`ohm_u`, `ohm_r`, `ohm_i`) appear
+- Every task has `display`, `hint`, `type`, `answer`, `isFraction`
+- `isFraction` is always `false`
+- `display` always ends with `.`
+- `hint` is always non-empty
+- No `NaN` or `Infinity` answers
+- All answers are positive
+
+### Suite 7 — Physics answer checking (9 tests)
+
+Tests `PhysicsProblems.checkAnswer()` against various inputs:
+
+- Correct and wrong integers
+- Empty and whitespace-only input rejected
+- Comma and dot accepted as decimal separators
+- Tolerance: answers within +/-0.005 accepted, beyond rejected
+- Non-numeric text rejected
+
+### Suite 8 — Physics mathematical correctness (3 tests)
+
+For each of the 3 Ohm's Law types, generates 100 tasks, parses the `display` string back into given values, recomputes the expected answer using U = R × I, and compares it to the stored `answer`.
+
+### Suite 9 — Physics safety checks (4 tests)
+
+Generates 300 physics tasks and verifies:
+
+- All answers in reasonable range (0–10000)
+- `ohm_r` answers are always whole numbers
+- `ohm_i` answers have at most 1 decimal place
+- Hints match expected units (V, Ω, A)
