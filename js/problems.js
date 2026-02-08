@@ -55,9 +55,11 @@ var MathProblems = (function() {
       display = a + ' \u00d7 ' + b + ' =';
       answer = parseFloat((a * b).toFixed(2));
     } else if (t === 'dec_div') {
-      var a = randInt(10, 50), b = randFloat(0.5, 5, 1);
+      var ans = randFloat(2, 20, 1);      // Clean answer: 2.0-20.0 with 1 decimal
+      var b = randFloat(0.5, 5, 1);       // Divisor: 0.5-5.0 with 1 decimal
+      var a = parseFloat((ans * b).toFixed(2));  // Dividend = answer × divisor
       display = a + ' \u00f7 ' + b + ' =';
-      answer = parseFloat((a / b).toFixed(2));
+      answer = ans;
     } else if (t === 'frac_add') {
       isFraction = true;
       var num1 = randInt(1, 9), den1 = randInt(2, 12);
