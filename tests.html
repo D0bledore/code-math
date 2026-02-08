@@ -66,9 +66,9 @@
   }
   tasks.forEach(function(t) { typeSeen[t.type] = true; });
 
-  var allTypes = ['add','sub','mul','div','dec_add','dec_sub','dec_mul','dec_div','frac_add','frac_sub'];
+  var allTypes = ['add','sub','mul','div','dec_add','dec_sub','dec_mul','dec_div','frac_add','frac_sub','dreisatz','dreisatz_inv'];
   var allSeen = allTypes.every(function(tp) { return typeSeen[tp]; });
-  assert(allSeen, 'All 10 types appear over 500 generations',
+  assert(allSeen, 'All 12 types appear over 500 generations',
     'Missing: ' + allTypes.filter(function(tp) { return !typeSeen[tp]; }).join(', '));
 
   var allFields = tasks.every(function(t) {
@@ -78,14 +78,14 @@
   });
   assert(allFields, 'Every task has display, hint, type, answer, isFraction');
 
-  var allEndEqual = tasks.every(function(t) { return /=\s*$/.test(t.display); });
-  assert(allEndEqual, 'display always ends with =');
+  var allEndEqual = tasks.every(function(t) { return /[=?]\s*$/.test(t.display); });
+  assert(allEndEqual, 'display always ends with = or ?');
 
   var hintCorrect = tasks.every(function(t) {
-    if (t.type === 'frac_add' || t.type === 'frac_sub') return t.hint !== '';
+    if (t.type === 'frac_add' || t.type === 'frac_sub' || t.type === 'dreisatz' || t.type === 'dreisatz_inv') return t.hint !== '';
     return t.hint === '';
   });
-  assert(hintCorrect, 'hint non-empty only for frac_add/frac_sub');
+  assert(hintCorrect, 'hint non-empty only for frac/dreisatz types');
 
   var isFracCorrect = tasks.every(function(t) {
     if (t.type === 'frac_add' || t.type === 'frac_sub') return t.isFraction === true;
@@ -196,6 +196,16 @@
         var eNum = parseInt(m[1]) * parseInt(m[4]) - parseInt(m[3]) * parseInt(m[2]);
         var eDen = parseInt(m[2]) * parseInt(m[4]);
         expected = {num: eNum, den: eDen};
+      } else if (type === 'dreisatz') {
+        var m = d.match(/(\d+) Äpfel kosten (\d+)€\. Was kosten (\d+) Äpfel\?/);
+        if (!m) return { ok: false, msg: 'parse fail' };
+        var a = +m[1], b = +m[2], c = +m[3];
+        expected = (c * b) / a;
+      } else if (type === 'dreisatz_inv') {
+        var m = d.match(/(\d+) Arbeiter brauchen (\d+) Tage\. Wie viele Tage brauchen (\d+) Arbeiter\?/);
+        if (!m) return { ok: false, msg: 'parse fail' };
+        var a = +m[1], b = +m[2], c = +m[3];
+        expected = (a * b) / c;
       }
 
       if (t.isFraction) {

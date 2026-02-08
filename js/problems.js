@@ -17,7 +17,8 @@ var MathProblems = (function() {
   var types = [
     'add', 'sub', 'mul', 'div',
     'dec_add', 'dec_sub', 'dec_mul', 'dec_div',
-    'frac_add', 'frac_sub'
+    'frac_add', 'frac_sub',
+    'dreisatz', 'dreisatz_inv'
   ];
 
   function generateTask() {
@@ -83,6 +84,26 @@ var MathProblems = (function() {
       var rNum = num1 * den2 - num2 * den1;
       var rDen = den1 * den2;
       answer = { num: rNum, den: rDen };
+    } else if (t === 'dreisatz') {
+      // Direct proportion: a items cost b€, what do c items cost?
+      var a = randInt(2, 10);
+      var pricePerItem = randInt(2, 10);
+      var b = a * pricePerItem;
+      var c = randInt(2, 10);
+      while (c === a) c = randInt(2, 10);  // Ensure different quantity
+      display = a + ' Äpfel kosten ' + b + '€. Was kosten ' + c + ' Äpfel?';
+      hint = 'Antwort in €';
+      answer = c * pricePerItem;
+    } else if (t === 'dreisatz_inv') {
+      // Inverse proportion: a workers take b days, how long for c workers?
+      var a = randInt(2, 8);
+      var totalWork = a * randInt(2, 8);  // a × b must be divisible
+      var b = totalWork / a;
+      var c = randInt(2, 8);
+      while (totalWork % c !== 0 || c === a) c = randInt(2, 8);
+      display = a + ' Arbeiter brauchen ' + b + ' Tage. Wie viele Tage brauchen ' + c + ' Arbeiter?';
+      hint = 'Antwort in Tagen';
+      answer = totalWork / c;
     }
 
     return { display: display, hint: hint, type: t, answer: answer, isFraction: isFraction };
